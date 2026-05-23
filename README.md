@@ -2,7 +2,7 @@
 
 A high-performance, serverless URL shortener built for speed and scale.
 
-![LinkShor Dashboard Interface](https://i.imgur.com/example-screenshot.png) <!-- Update this with a real screenshot! -->
+![LinkShort Logo](./public/logo.png)
 
 ## ⚡ Features
 - **Lightning Fast Redirects**: Powered by Upstash Redis acting as an ultra-fast read-through cache at the edge.
