@@ -1,0 +1,15 @@
+TOKEN "read_clicks_by_device" READ
+
+NODE endpoint
+SQL >
+    SELECT
+        multiIf(
+            match(user_agent, '(?i)(iphone|ipad|ipod|android|mobile)'), 'Mobile',
+            match(user_agent, '(?i)(windows|macintosh|linux)'), 'Desktop',
+            'Other'
+        ) AS device,
+        count() AS clicks
+    FROM click_events
+    WHERE short_code = {{String(short_code)}}
+    GROUP BY device
+    ORDER BY clicks DESC

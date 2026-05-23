@@ -1,0 +1,11 @@
+TOKEN "read_clicks_timeseries" READ
+
+NODE endpoint
+SQL >
+    SELECT
+        toStartOfDay(timestamp) AS date,
+        count() AS clicks
+    FROM click_events
+    WHERE short_code = {{String(short_code)}}
+    GROUP BY date
+    ORDER BY date ASC

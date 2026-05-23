@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LinkShor 🔗
 
-## Getting Started
+A high-performance, serverless URL shortener built for speed and scale.
 
-First, run the development server:
+![LinkShor Dashboard Interface](https://i.imgur.com/example-screenshot.png) <!-- Update this with a real screenshot! -->
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ⚡ Features
+- **Lightning Fast Redirects**: Powered by Upstash Redis acting as an ultra-fast read-through cache at the edge.
+- **Serverless PostgreSQL**: Persistent source of truth using a Neon database to ensure ACID compliance and scale-to-zero efficiency.
+- **Real-time Analytics**: Built with Tinybird to ingest millions of click events in the background asynchronously without slowing down user redirects.
+- **Modern UI**: Sleek glassmorphism design with a dynamic slide-out link history dashboard built on Next.js 15 (App Router) & Tailwind CSS.
+- **Local Storage Dashboard**: Your generated links are saved instantly in your browser to give you a personalized historical dashboard out-of-the-box.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠 Tech Stack
+- **Framework**: Next.js (App Router, React Server Actions)
+- **Language**: TypeScript
+- **Database**: Neon (Serverless PostgreSQL)
+- **Cache**: Upstash Redis
+- **Analytics**: Tinybird
+- **Styling**: Tailwind CSS & Lucide Icons
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Getting Started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Clone the repository:
+   ```bash
+   git clone git@github.com:X377AAHIL/Shortlink.git
+   cd Shortlink
+   ```
 
-## Learn More
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+3. Set up your environment variables. Copy `.env.example` to `.env.local` and add your real keys for Neon, Upstash, and Tinybird:
+   ```bash
+   cp .env.example .env.local
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🧠 Architecture Overview
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Link Creation (`app/actions/createLink.ts`)**: 
+   Next.js Server Actions validate the URL, query PostgreSQL for the next sequence ID, Base62 encode it, store the mapping in Neon, and proactively cache it in Redis.
+2. **Redirection Engine (`app/[code]/route.ts`)**: 
+   Incoming requests hit the dynamic route handler. It queries Upstash Redis directly. If the short URL is found, a `302 Found` redirect is immediately returned. 
+3. **Background Analytics Ingestion**: 
+   Using Next.js `waitUntil()`, the redirect does not wait for analytics. A click event is asynchronously fired via HTTP POST to the Tinybird Events API, allowing you to ingest massive amounts of data in real-time.
