@@ -4,6 +4,24 @@ import pool from '@/lib/db';
 import redis from '@/lib/redis';
 import { encodeBase62 } from '@/lib/base62';
 
+// Common tracking parameters to strip for privacy
+const TRACKING_PARAMS = [
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+  'fbclid', 'gclid', 'dclid', 'wbraid', 'gbraid', // Facebook & Google
+  'ttclid', 'twclid', 'igshid', 'li_fat_id',      // TikTok, Twitter, Instagram, LinkedIn
+  'mc_cid', 'mc_eid', 'msclkid', 'epik'           // Mailchimp, Microsoft, Pinterest
+];
+
+function stripTrackers(urlString: string): string {
+  try {
+    const url = new URL(urlString);
+    TRACKING_PARAMS.forEach(param => url.searchParams.delete(param));
+    return url.toString();
+  } catch {
+    return urlString;
+  }
+}
+
 export type CreateLinkState = {
   success: boolean;
   message?: string;
@@ -15,7 +33,7 @@ export async function createLink(
   prevState: CreateLinkState,
   formData: FormData
 ): Promise<CreateLinkState> {
-  const originalUrl = formData.get('original_url')?.toString();
+  let originalUrl = formData.get('original_url')?.toString();
 
   if (!originalUrl) {
     return { success: false, message: 'URL is required.' };
@@ -27,6 +45,9 @@ export async function createLink(
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
       return { success: false, message: 'URL must start with http:// or https://' };
     }
+    
+    // Strip privacy-invasive tracking parameters!
+    originalUrl = stripTrackers(originalUrl);
   } catch {
     return { success: false, message: 'Invalid URL format.' };
   }
